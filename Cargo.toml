@@ -2,8 +2,24 @@
 name = "fourd3d3d3"
 version = "0.1.0"
 edition = "2021"
+authors = [""]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bevy_app = "0.6.0"
+bevy_core = "0.6.0"
+bevy_ecs = "0.6.1"
 ctru-rs = { git = "https://github.com/Meziu/ctru-rs.git" }
+lazy_static = "1.4.0"
+owning_ref = "0.4.1"
+
+[patch."https://github.com/Meziu/libc.git"]
+libc = { path = "/Users/ianchamberlain/Documents/Development/3ds/libc" }
+
+[patch.crates-io]
+bevy_ecs = { path = "/Users/ianchamberlain/Documents/Development/bevy/crates/bevy_ecs" }
+libc = { path = "/Users/ianchamberlain/Documents/Development/3ds/libc" }
+
+[patch."https://github.com/Meziu/pthread-3ds.git"]
+pthread-3ds = { path = "/Users/ianchamberlain/Documents/Development/3ds/pthread-3ds"}

@@ -1,6 +1,5 @@
-use bevy_app::{App, AppExit};
-use bevy_app::{CoreStage, Plugin};
-use bevy_ecs::prelude::*;
+use bevy::app::AppExit;
+use bevy::prelude::*;
 
 use ctru::console::Console;
 use ctru::services::hid::{Hid, KeyPad};

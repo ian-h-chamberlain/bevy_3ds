@@ -1,9 +1,6 @@
-use std::time::Duration;
-
-use bevy_3ds::GfxAndConsole;
-use bevy_app::{App, ScheduleRunnerPlugin, ScheduleRunnerSettings};
-use bevy_core::CorePlugin;
-use bevy_ecs::prelude::*;
+use bevy::app::ScheduleRunnerPlugin;
+use bevy::core::CorePlugin;
+use bevy::prelude::*;
 
 mod bevy_3ds;
 
@@ -16,12 +13,6 @@ fn main() {
         .add_plugin(ScheduleRunnerPlugin)
         .add_plugin(bevy_3ds::DefaultPlugin)
         // Global resources
-        .insert_resource(ScheduleRunnerSettings {
-            run_mode: bevy_app::RunMode::Loop {
-                // TODO: this... doesn't seem to work right.
-                wait: Some(Duration::from_millis(10_000)),
-            },
-        })
         // setup people entities/components
         .add_startup_system(add_people)
         // normal runtime stages
@@ -67,7 +58,7 @@ fn greet_people(query: Query<&Name, With<Person>>, mut events: EventWriter<Strin
 /// It's important that all functions using println obtain a reference to the console,
 /// otherwise it seems to result in deadlock from multiple threads trying to grab a reference
 /// to stdout? It's not clear exactly what's going on here, but it works with this.
-fn printer(_: NonSend<GfxAndConsole>, mut events: EventReader<String>) {
+fn printer(_: NonSend<bevy_3ds::GfxAndConsole>, mut events: EventReader<String>) {
     for evt in events.iter() {
         println!("{}", evt);
     }

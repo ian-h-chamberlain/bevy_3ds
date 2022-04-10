@@ -1,41 +1,21 @@
 use std::time::Duration;
 
-use bevy_app::{App, AppExit, CoreStage, ScheduleRunnerPlugin, ScheduleRunnerSettings};
+use bevy_3ds::GfxAndConsole;
+use bevy_app::{App, ScheduleRunnerPlugin, ScheduleRunnerSettings};
 use bevy_core::CorePlugin;
 use bevy_ecs::prelude::*;
-use ctru::console::Console;
-use ctru::services::hid::{Hid, KeyPad};
-use ctru::services::Apt;
-use ctru::Gfx;
-use owning_ref::OwningHandle;
 
-type GfxAndConsole<'a> = OwningHandle<Box<Gfx>, Box<Console<'a>>>;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, StageLabel)]
-enum Stage {
-    Apt,
-    Gfx,
-}
+mod bevy_3ds;
 
 fn main() {
     ctru::init();
-
-    let gfx = Gfx::init().expect("failed to init gfx");
-    let gfx_console: GfxAndConsole = OwningHandle::new_with_fn(Box::new(gfx), |gfx| {
-        let gfx = unsafe { &*gfx };
-        Box::new(Console::init(gfx.bottom_screen.borrow_mut()))
-    });
-    let apt = Apt::init().expect("failed to init APT");
-    let hid = Hid::init().expect("failed to init HID");
 
     App::new()
         // Base Bevy plugins
         .add_plugin(CorePlugin)
         .add_plugin(ScheduleRunnerPlugin)
+        .add_plugin(bevy_3ds::DefaultPlugin)
         // Global resources
-        .insert_non_send_resource(gfx_console)
-        .insert_resource(apt)
-        .insert_resource(hid)
         .insert_resource(ScheduleRunnerSettings {
             run_mode: bevy_app::RunMode::Loop {
                 // TODO: this... doesn't seem to work right.
@@ -44,17 +24,11 @@ fn main() {
         })
         // setup people entities/components
         .add_startup_system(add_people)
-        // Check APT and exit system before everything else
-        .add_stage_before(CoreStage::First, Stage::Apt, SystemStage::single_threaded())
-        .add_system_to_stage(Stage::Apt, exit_system)
         // normal runtime stages
         .add_event::<String>()
         .add_system(greet_people)
         .add_system(hello_world)
         .add_system(printer)
-        // run gfx flush after all other stages
-        .add_stage_after(CoreStage::Last, Stage::Gfx, SystemStage::single_threaded())
-        .add_system_to_stage(Stage::Gfx, flush_gfx)
         // 🚀
         .run();
 }
@@ -97,25 +71,4 @@ fn printer(_: NonSend<GfxAndConsole>, mut events: EventReader<String>) {
     for evt in events.iter() {
         println!("{}", evt);
     }
-}
-
-fn exit_system(apt: NonSend<Apt>, input: Res<Hid>, mut exit: EventWriter<AppExit>) {
-    if !apt.main_loop() {
-        exit.send(AppExit);
-        return;
-    }
-
-    input.scan_input();
-    let keys = input.keys_down();
-    if keys.contains(KeyPad::KEY_SELECT) {
-        exit.send(AppExit);
-    }
-}
-
-fn flush_gfx(gfx_console: NonSend<GfxAndConsole>) {
-    let gfx = gfx_console.as_owner();
-
-    gfx.flush_buffers();
-    gfx.swap_buffers();
-    gfx.wait_for_vblank();
 }

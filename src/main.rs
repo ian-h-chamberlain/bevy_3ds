@@ -1,5 +1,6 @@
-use bevy::app::ScheduleRunnerPlugin;
-use bevy::core::CorePlugin;
+use std::sync::Once;
+
+use bevy::log;
 use bevy::prelude::*;
 
 mod bevy_3ds;
@@ -7,19 +8,24 @@ mod bevy_3ds;
 fn main() {
     ctru::init();
 
-    App::new()
-        // Base Bevy plugins
-        .add_plugin(CorePlugin)
-        .add_plugin(ScheduleRunnerPlugin)
+    let mut app = App::new();
+
+    app
+        // 3ds stuff needs to be set up first, for gfx, console, etc
         .add_plugin(bevy_3ds::DefaultPlugin)
-        // Global resources
-        // setup people entities/components
+        // Then logging, so we can see what Bevy is doing
+        .insert_resource(log::LogSettings {
+            level: log::Level::TRACE,
+            ..Default::default()
+        })
+        .add_plugin(log::LogPlugin)
+        // Base Bevy plugins
+        .add_plugins(MinimalPlugins)
+        // Startup
         .add_startup_system(add_people)
         // normal runtime stages
-        .add_event::<String>()
         .add_system(greet_people)
         .add_system(hello_world)
-        .add_system(printer)
         // 🚀
         .run();
 }
@@ -45,21 +51,20 @@ fn add_people(mut commands: Commands) {
         .insert(Name("Zayna Nieves".to_string()));
 }
 
-fn hello_world(mut events: EventWriter<String>) {
-    events.send("Hello world!".to_string());
+fn hello_world(_: Query<&Name, With<Person>>) {
+    static HELLO: Once = Once::new();
+
+    HELLO.call_once(|| {
+        log::info!("Hello world!");
+    });
 }
 
-fn greet_people(query: Query<&Name, With<Person>>, mut events: EventWriter<String>) {
-    for name in query.iter() {
-        events.send(format!("hello {}!", name.0));
-    }
-}
+fn greet_people(query: Query<&Name, With<Person>>) {
+    static HELLO: Once = Once::new();
 
-/// It's important that all functions using println obtain a reference to the console,
-/// otherwise it seems to result in deadlock from multiple threads trying to grab a reference
-/// to stdout? It's not clear exactly what's going on here, but it works with this.
-fn printer(_: NonSend<bevy_3ds::GfxAndConsole>, mut events: EventReader<String>) {
-    for evt in events.iter() {
-        println!("{}", evt);
-    }
+    HELLO.call_once(|| {
+        for name in query.iter() {
+            log::info!("hello {}!", name.0);
+        }
+    });
 }

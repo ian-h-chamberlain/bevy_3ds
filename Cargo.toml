@@ -7,16 +7,30 @@ authors = [""]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { path = "../../bevy", default-features = false }
 ctru-rs = { git = "https://github.com/Meziu/ctru-rs.git" }
 lazy_static = "1.4.0"
 owning_ref = "0.4.1"
 
+[dependencies.bevy]
+path = "../../bevy"
+default-features = false
+features = []
+
+# TODO: upstream / remove all these crazy path patches...
 [patch."https://github.com/Meziu/libc.git"]
-libc = { path = "/Users/ianchamberlain/Documents/Development/3ds/libc" }
+libc = { path = "../libc" }
+
+[patch."https://github.com/Meziu/ctru-rs.git"]
+ctru-rs = { path = "../ctru-rs/ctru-rs" }
+ctru-sys = { path = "../ctru-rs/ctru-sys" }
 
 [patch.crates-io]
-libc = { path = "/Users/ianchamberlain/Documents/Development/3ds/libc" }
+libc = { path = "../libc" }
 
 [patch."https://github.com/Meziu/pthread-3ds.git"]
-pthread-3ds = { path = "/Users/ianchamberlain/Documents/Development/3ds/pthread-3ds" }
+pthread-3ds = { path = "../pthread-3ds" }
+
+# opt-level must be 1 at minimum for Regex::new() to work without blowing the stack...
+# This also seems to be the recommended workflow for Bevy in general.
+[profile.dev.package."*"]
+opt-level = 1

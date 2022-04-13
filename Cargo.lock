@@ -661,7 +661,6 @@ dependencies = [
 [[package]]
 name = "ctru-rs"
 version = "0.7.1"
-source = "git+https://github.com/Meziu/ctru-rs.git#40db202e0bccc3f93030bdcc08be87a8eceb6e26"
 dependencies = [
  "bitflags",
  "cfg-if",
@@ -678,7 +677,6 @@ dependencies = [
 [[package]]
 name = "ctru-sys"
 version = "0.4.1"
-source = "git+https://github.com/Meziu/ctru-rs.git#40db202e0bccc3f93030bdcc08be87a8eceb6e26"
 dependencies = [
  "libc",
 ]

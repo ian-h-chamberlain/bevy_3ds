@@ -1,3 +1,6 @@
+// TODO: separate crate, suitable for public consumption. Could be a git dep
+// in the meantime...
+
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
@@ -24,7 +27,9 @@ impl Plugin for DefaultPlugin {
         let gfx = Gfx::init().expect("failed to init gfx");
         let gfx_console: GfxAndConsole = OwningHandle::new_with_fn(Box::new(gfx), |gfx| {
             let gfx = unsafe { &*gfx };
-            Box::new(Console::init(gfx.bottom_screen.borrow_mut()))
+            let mut screen = gfx.top_screen.borrow_mut();
+            screen.set_wide_mode(true);
+            Box::new(Console::non_flushing(screen))
         });
         let apt_handle = Apt::init().expect("failed to init APT");
         let hid = Hid::init().expect("failed to init HID");
@@ -33,11 +38,13 @@ impl Plugin for DefaultPlugin {
             .insert_resource(apt_handle)
             .insert_resource(hid)
             // Check APT and exit system before everything else
-            .add_stage_before(CoreStage::First, Stage::Apt, SystemStage::single_threaded())
-            .add_system_to_stage(Stage::Apt, exit_system)
+            .add_stage_before(
+                CoreStage::First,
+                Stage::Apt,
+                SystemStage::single(exit_system),
+            )
             // run gfx flush after all other stages
-            .add_stage_after(CoreStage::Last, Stage::Gfx, SystemStage::single_threaded())
-            .add_system_to_stage(Stage::Gfx, flush_gfx);
+            .add_stage_after(CoreStage::Last, Stage::Gfx, SystemStage::single(flush_gfx));
     }
 }
 

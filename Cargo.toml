@@ -8,7 +8,7 @@ description = "A 4D maze game for the 3DS."
 [dependencies]
 ctru-rs = { git = "https://github.com/Meziu/ctru-rs.git" }
 lazy_static = "1.4.0"
-owning_ref = "0.4.1"
+ouroboros = "0.15.0"
 
 [dependencies.bevy]
 path = "../../bevy"

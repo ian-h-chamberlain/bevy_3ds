@@ -1,18 +1,19 @@
 // TODO: separate crate, suitable for public consumption. Could be a git dep
 // in the meantime...
 
+use std::sync::{Arc, Mutex};
+
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
 use ctru::console::Console;
 use ctru::services::Apt;
 use ctru::Gfx;
-use owning_ref::OwningHandle;
 
-pub mod gfx;
+pub mod graphics;
 pub mod input;
 
-pub type GfxAndConsole<'a> = OwningHandle<Box<Gfx>, Box<Console<'a>>>;
+use graphics::Graphics;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, StageLabel)]
 enum Stage {
@@ -25,16 +26,9 @@ pub struct DefaultPlugin;
 
 impl Plugin for DefaultPlugin {
     fn build(&self, app: &mut App) {
-        let gfx = Gfx::init().expect("failed to init gfx");
-        let gfx_console: GfxAndConsole = OwningHandle::new_with_fn(Box::new(gfx), |gfx| {
-            let gfx = unsafe { &*gfx };
-            let mut screen = gfx.top_screen.borrow_mut();
-            screen.set_wide_mode(true);
-            Box::new(Console::non_flushing(screen))
-        });
         let apt_handle = Apt::init().expect("failed to init APT");
 
-        app.insert_non_send_resource(gfx_console)
+        app.init_non_send_resource::<Graphics>()
             .insert_resource(apt_handle)
             // Check APT and exit system before everything else
             .add_stage_before(
@@ -53,8 +47,8 @@ fn exit_system(apt: NonSend<Apt>, mut exit: EventWriter<AppExit>) {
     }
 }
 
-fn flush_gfx(gfx_console: NonSend<GfxAndConsole>) {
-    let gfx = gfx_console.as_owner();
+fn flush_gfx(graphics: NonSend<Graphics>) {
+    let gfx = graphics.gfx();
 
     gfx.flush_buffers();
     gfx.swap_buffers();

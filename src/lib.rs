@@ -5,12 +5,13 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 
 use ctru::console::Console;
-use ctru::services::hid::{Hid, KeyPad};
 use ctru::services::Apt;
 use ctru::Gfx;
 use owning_ref::OwningHandle;
 
-// TODO: Erase type on the Gfx? Client code might want to use it somehow, I guess?
+pub mod gfx;
+pub mod input;
+
 pub type GfxAndConsole<'a> = OwningHandle<Box<Gfx>, Box<Console<'a>>>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, StageLabel)]
@@ -32,14 +33,12 @@ impl Plugin for DefaultPlugin {
             Box::new(Console::non_flushing(screen))
         });
         let apt_handle = Apt::init().expect("failed to init APT");
-        let hid = Hid::init().expect("failed to init HID");
 
         app.insert_non_send_resource(gfx_console)
             .insert_resource(apt_handle)
-            .insert_resource(hid)
             // Check APT and exit system before everything else
             .add_stage_before(
-                CoreStage::First,
+                CoreStage::PreUpdate,
                 Stage::Apt,
                 SystemStage::single(exit_system),
             )
@@ -48,18 +47,8 @@ impl Plugin for DefaultPlugin {
     }
 }
 
-fn exit_system(apt: NonSend<Apt>, input: Res<Hid>, mut exit: EventWriter<AppExit>) {
+fn exit_system(apt: NonSend<Apt>, mut exit: EventWriter<AppExit>) {
     if !apt.main_loop() {
-        exit.send(AppExit);
-        return;
-    }
-
-    // TODO customization of exit behavior. Maybe the second half of this
-    // system isn't really reasonable to have as part of the plugin
-
-    input.scan_input();
-    let keys = input.keys_down();
-    if keys.contains(KeyPad::KEY_SELECT) {
         exit.send(AppExit);
     }
 }

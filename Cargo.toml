@@ -3,8 +3,7 @@ name = "fourd3d3d3"
 version = "0.1.0"
 edition = "2021"
 authors = [""]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "A 4D maze game for the 3DS."
 
 [dependencies]
 ctru-rs = { git = "https://github.com/Meziu/ctru-rs.git" }

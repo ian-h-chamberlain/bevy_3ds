@@ -13,6 +13,17 @@ ctru-rs = { git = "https://github.com/Meziu/ctru-rs.git" }
 git = "https://github.com/bevyengine/bevy.git"
 branch = "main"
 default-features = false
+# Defaults, except for "bevy_gilrs", "bevy_winit", "x11", and "filesystem_watcher",
+# none of which make sense on this platform.
+features = [
+    "animation",
+    "bevy_audio",
+    "bevy_gltf",
+    "render",
+    "png",
+    "hdr",
+    "vorbis",
+]
 
 # For now, require a fork of bevy_ecs: https://github.com/bevyengine/bevy/pull/4452
 # This also requires bevy_reflect and a few other crates to work properly

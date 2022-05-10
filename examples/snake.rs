@@ -1,3 +1,5 @@
+//! A simple Snake clone to show off the basic features of `bevy_3ds`.
+
 use bevy::app::AppExit;
 use bevy::log;
 use bevy::prelude::*;
@@ -10,21 +12,17 @@ fn main() {
     let mut app = App::new();
 
     app
-        // 3ds stuff needs to be set up first, for gfx, console, etc
-        .add_plugin(bevy_3ds::DefaultPlugin)
-        // Then logging, so we can see what Bevy is doing
+        // Configure logging to debug level
         .insert_resource(log::LogSettings {
             level: log::Level::DEBUG,
             ..Default::default()
         })
-        .add_plugin(log::LogPlugin)
-        // Base Bevy plugins
-        .add_plugins(MinimalPlugins)
-        .add_plugin(bevy_3ds::input::InputPlugin)
-        // Startup
+        // Add default bevy_3ds plugins
+        .add_plugins(bevy_3ds::DefaultPlugins)
+        // Startup systems
         .insert_resource(MoveTimer(Timer::from_seconds(0.75, true)))
         .add_startup_system(spawn_player)
-        // normal runtime stages
+        // Normal runtime systems
         .add_system(handle_inputs)
         .add_system(move_player.after(handle_inputs))
         // 🚀
@@ -101,9 +99,9 @@ fn handle_inputs(
 
     let mut direction = direction.single_mut();
     for evt in gamepad_event.iter() {
-        if let GamepadEvent {
+        if let &GamepadEvent {
             gamepad: GAMEPAD,
-            event_type: &ButtonChanged(button, value),
+            event_type: ButtonChanged(button, value),
         } = evt
         {
             if value > 0.5 {

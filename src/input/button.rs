@@ -12,28 +12,28 @@ const UNPRESSED: f32 = 0.0;
 pub fn update_state(hid: &Hid, events: &mut EventWriter<GamepadEventRaw>) {
     for_each_key(hid.keys_down(), |key_pad| {
         if let Some(button) = convert_key(key_pad) {
-            events.send(GamepadEventRaw {
-                gamepad: GAMEPAD,
-                event_type: GamepadEventType::ButtonChanged(button, PRESSED),
-            });
+            events.send(GamepadEventRaw::new(
+                GAMEPAD,
+                GamepadEventType::ButtonChanged(button, PRESSED),
+            ));
         }
     });
 
     for_each_key(hid.keys_held(), |key_pad| {
         if let Some(button) = convert_key(key_pad) {
-            events.send(GamepadEventRaw {
-                gamepad: GAMEPAD,
-                event_type: GamepadEventType::ButtonChanged(button, PRESSED),
-            });
+            events.send(GamepadEventRaw::new(
+                GAMEPAD,
+                GamepadEventType::ButtonChanged(button, PRESSED),
+            ));
         }
     });
 
     for_each_key(hid.keys_up(), |key_pad| {
         if let Some(button) = convert_key(key_pad) {
-            events.send(GamepadEventRaw {
-                gamepad: GAMEPAD,
-                event_type: GamepadEventType::ButtonChanged(button, UNPRESSED),
-            });
+            events.send(GamepadEventRaw::new(
+                GAMEPAD,
+                GamepadEventType::ButtonChanged(button, UNPRESSED),
+            ));
         }
     });
 }

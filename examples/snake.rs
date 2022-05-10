@@ -27,7 +27,6 @@ fn main() {
         // normal runtime stages
         .add_system(handle_inputs)
         .add_system(move_player.after(handle_inputs))
-        // .add_system_to_stage(CoreStage::PostUpdate, draw_player.exclusive_system())
         // 🚀
         .run();
 }
@@ -104,28 +103,30 @@ fn handle_inputs(
     for evt in gamepad_event.iter() {
         if let GamepadEvent {
             gamepad: GAMEPAD,
-            event_type,
+            event_type: &ButtonChanged(button, value),
         } = evt
         {
-            match *event_type {
-                ButtonChanged(DPadUp, v) if v > 0.5 => {
-                    *direction = Direction::North;
+            if value > 0.5 {
+                match button {
+                    DPadUp => {
+                        *direction = Direction::North;
+                    }
+                    DPadDown => {
+                        *direction = Direction::South;
+                    }
+                    DPadLeft => {
+                        *direction = Direction::West;
+                    }
+                    DPadRight => {
+                        *direction = Direction::East;
+                    }
+                    Start => {
+                        exit_event.send(AppExit);
+                    }
+                    _ => continue,
                 }
-                ButtonChanged(DPadDown, v) if v > 0.5 => {
-                    *direction = Direction::South;
-                }
-                ButtonChanged(DPadLeft, v) if v > 0.5 => {
-                    *direction = Direction::West;
-                }
-                ButtonChanged(DPadRight, v) if v > 0.5 => {
-                    *direction = Direction::East;
-                }
-                ButtonChanged(Start, value) if value > 0.5 => {
-                    exit_event.send(AppExit);
-                }
-                _ => continue,
+                log::info!("Player direction updated to {direction:?}");
             }
-            log::info!("Player direction updated to {direction:?}");
         }
     }
 }

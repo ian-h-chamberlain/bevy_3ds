@@ -1,13 +1,9 @@
-use bevy::app::{App, CoreStage, Plugin};
-use bevy::ecs::{
-    event::EventWriter,
-    system::{IntoExclusiveSystem, Res},
-};
+use bevy::ecs::system::IntoExclusiveSystem;
 use bevy::input::{
     gamepad::{Gamepad, GamepadEventRaw},
     InputPlugin as BevyInputPlugin, InputSystem,
 };
-use bevy::prelude::{ExclusiveSystemDescriptorCoercion, GamepadEventType, StartupStage};
+use bevy::prelude::*;
 use ctru::services::Hid;
 
 /// There is only one "gamepad" on the 3DS, so its ID is always zero.

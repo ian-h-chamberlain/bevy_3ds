@@ -1,9 +1,5 @@
-//! TODO: separate crate, suitable for public consumption. Could be a git dep
-//! in the meantime...
-
 use bevy::app::AppExit;
 use bevy::prelude::*;
-
 use ctru::services::soc::Soc;
 use ctru::services::Apt;
 use ctru::Gfx;
@@ -40,7 +36,7 @@ impl Plugin for DefaultPlugin {
     }
 }
 
-// TODO: maybe #[cfg] this as a debug feature or something
+// TODO: maybe #[cfg] this as a debug feature or something. Or just a plugin
 fn debug_output_to_3dslink(mut soc: ResMut<Soc>) {
     soc.redirect_to_3dslink(true, true)
         .expect("unable to debug output to 3dslink");

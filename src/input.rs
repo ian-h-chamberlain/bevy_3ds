@@ -11,7 +11,7 @@ use bevy::prelude::{ExclusiveSystemDescriptorCoercion, GamepadEventType, Startup
 use ctru::services::Hid;
 
 /// There is only one "gamepad" on the 3DS, so its ID is always zero.
-pub const GAMEPAD: Gamepad = Gamepad(0);
+pub const GAMEPAD: Gamepad = Gamepad { id: 0 };
 
 mod button;
 
@@ -33,7 +33,10 @@ impl Plugin for InputPlugin {
 }
 
 fn startup_system(mut events: EventWriter<GamepadEventRaw>) {
-    events.send(GamepadEventRaw(GAMEPAD, GamepadEventType::Connected));
+    events.send(GamepadEventRaw {
+        gamepad: GAMEPAD,
+        event_type: GamepadEventType::Connected,
+    });
 }
 
 fn update_system(hid: Res<Hid>, mut events: EventWriter<GamepadEventRaw>) {

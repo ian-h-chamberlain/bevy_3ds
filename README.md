@@ -1,3 +1,3 @@
-# maze-game-3ds
+# bevy_3ds
 
-A 4D maze game for the 3DS, inspired by <https://www.urticator.net/maze/index.html>.
+A collection of plugins for use with [Bevy](https://bevyengine.org) on the 3DS.

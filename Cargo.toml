@@ -1,35 +1,25 @@
 [package]
-name = "fourd3d3d3"
+name = "bevy_3ds"
 version = "0.1.0"
 edition = "2021"
 authors = [""]
-description = "A 4D maze game for the 3DS."
+description = "A library for using Bevy on the 3DS"
 
 [dependencies]
 ctru-rs = { git = "https://github.com/Meziu/ctru-rs.git" }
-lazy_static = "1.4.0"
-ouroboros = "0.15.0"
 
+# This library targets Bevy main for now, since it requires a fork of bevy_ecs
 [dependencies.bevy]
-path = "../../bevy"
+git = "https://github.com/bevyengine/bevy.git"
+branch = "main"
 default-features = false
-features = []
 
-# TODO: upstream / remove all these crazy path patches...
-[patch."https://github.com/Meziu/libc.git"]
-libc = { path = "../libc" }
+# For now, require a fork of bevy_ecs: https://github.com/bevyengine/bevy/pull/4452
+# This also requires bevy_reflect and a few other crates to work properly
+[patch."https://github.com/bevyengine/bevy.git"]
+bevy_ecs = { git = "https://github.com/ian-h-chamberlain/bevy.git", branch = "entity-32bit-cursor" }
+bevy_reflect = { git = "https://github.com/ian-h-chamberlain/bevy.git", branch = "entity-32bit-cursor" }
 
-[patch."https://github.com/Meziu/ctru-rs.git"]
-ctru-rs = { path = "../ctru-rs/ctru-rs" }
-ctru-sys = { path = "../ctru-rs/ctru-sys" }
-
-[patch.crates-io]
-libc = { path = "../libc" }
-
-[patch."https://github.com/Meziu/pthread-3ds.git"]
-pthread-3ds = { path = "../pthread-3ds" }
-
-# opt-level must be 1 at minimum for Regex::new() to work without blowing the stack...
-# This also seems to be the recommended workflow for Bevy in general.
-[profile.dev.package."*"]
+# Improve performance of the Bevy runtime
+[profile.dev.package.bevy]
 opt-level = 1

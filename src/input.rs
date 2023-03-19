@@ -1,7 +1,7 @@
 //! Input handling for the 3DS. The device is treated as a single gamepad and
 //! sends native Bevy gamepad events for use with Bevy's [`InputSystem`].
 
-use bevy::input::gamepad::GamepadEventRaw;
+use bevy::input::gamepad::{GamepadConnection, GamepadConnectionEvent, GamepadEvent, GamepadInfo};
 use bevy::prelude::*;
 use ctru::services::Hid;
 
@@ -13,24 +13,39 @@ mod button;
 #[derive(Default)]
 pub struct InputPlugin;
 
-impl Plugin for InputPlugin {
-    fn build(&self, app: &mut App) {
-        let hid = Hid::init().expect("failed to init HID");
+#[derive(Resource)]
+struct GamepadInput(Hid);
 
-        app.insert_resource(hid)
-            .add_startup_system_to_stage(StartupStage::PreStartup, gamepad_startup_system)
-            .add_system_to_stage(
-                CoreStage::PreUpdate,
-                gamepad_update_system.before(bevy::input::InputSystem),
-            );
+impl Default for GamepadInput {
+    fn default() -> Self {
+        let hid = Hid::init().expect("failed to init HID");
+        Self(hid)
     }
 }
 
-fn gamepad_startup_system(mut events: EventWriter<GamepadEventRaw>) {
-    events.send(GamepadEventRaw::new(GAMEPAD, GamepadEventType::Connected));
+impl Plugin for InputPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<GamepadInput>()
+            // TODO: reread https://bevyengine.org/news/bevy-0-10/#ecs-schedule-v3
+            // and make sure these are scheduled correctly
+            .add_startup_system(gamepad_startup_system.before(StartupSet::PreStartup))
+            .add_system(gamepad_update_system.before(bevy::input::InputSystem));
+    }
 }
 
-fn gamepad_update_system(hid: Res<Hid>, mut events: EventWriter<GamepadEventRaw>) {
-    hid.scan_input();
-    button::update_state(&*hid, &mut events);
+fn gamepad_startup_system(mut events: EventWriter<GamepadEvent>) {
+    events.send(
+        GamepadConnectionEvent::new(
+            GAMEPAD,
+            GamepadConnection::Connected(GamepadInfo {
+                name: String::from("3DS Gamepad"),
+            }),
+        )
+        .into(),
+    );
+}
+
+fn gamepad_update_system(hid: Res<GamepadInput>, mut events: EventWriter<GamepadEvent>) {
+    hid.0.scan_input();
+    button::update_state(&hid.0, &mut events);
 }

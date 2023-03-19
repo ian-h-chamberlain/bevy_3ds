@@ -1,26 +1,32 @@
-//! A simple Snake clone to show off the basic features of `bevy_3ds`.
+//! A simple Snake clone to show off the basic features of `bevy_3ds`, without
+//! rendering anything using graphics APIs.
+
+// TODO: maybe snake is not the best option but :shrug:
 
 use bevy::app::AppExit;
+use bevy::input::gamepad::GamepadButtonChangedEvent;
 use bevy::log;
 use bevy::prelude::*;
 
 use bevy_3ds::input::GAMEPAD;
 
 fn main() {
-    ctru::init();
+    ctru::use_panic_handler();
 
     let mut app = App::new();
 
     app
-        // Configure logging to debug level
-        .insert_resource(log::LogSettings {
-            level: log::Level::DEBUG,
-            ..Default::default()
-        })
         // Add default bevy_3ds plugins
-        .add_plugins(bevy_3ds::DefaultPlugins)
+        .add_plugins(
+            bevy_3ds::DefaultPlugins
+                // Configure logging to debug level
+                .set(log::LogPlugin {
+                    level: log::Level::DEBUG,
+                    ..default()
+                }),
+        )
         // Startup systems
-        .insert_resource(MoveTimer(Timer::from_seconds(0.75, true)))
+        .insert_resource(MoveTimer(Timer::from_seconds(0.75, TimerMode::Repeating)))
         .add_startup_system(spawn_player)
         // Normal runtime systems
         .add_system(handle_inputs)
@@ -29,6 +35,7 @@ fn main() {
         .run();
 }
 
+#[derive(Resource)]
 struct MoveTimer(Timer);
 
 #[derive(Component)]
@@ -57,11 +64,7 @@ enum Direction {
 }
 
 fn spawn_player(mut commands: Commands) {
-    commands
-        .spawn()
-        .insert(Player)
-        .insert(Position { x: 0, y: 0 })
-        .insert(Direction::East);
+    commands.spawn((Player, Position { x: 0, y: 0 }, Direction::East));
 }
 
 fn move_player(
@@ -88,43 +91,41 @@ fn move_player(
 }
 
 fn handle_inputs(
-    mut gamepad_event: EventReader<GamepadEvent>,
+    mut gamepad_event: EventReader<GamepadButtonChangedEvent>,
     mut direction: Query<&mut Direction, With<Player>>,
     mut exit_event: EventWriter<AppExit>,
 ) {
-    use bevy::input::gamepad::{
-        GamepadButtonType::{DPadDown, DPadLeft, DPadRight, DPadUp, Start},
-        GamepadEventType::ButtonChanged,
-    };
+    use bevy::input::gamepad::GamepadButtonType::{DPadDown, DPadLeft, DPadRight, DPadUp, Start};
 
     let mut direction = direction.single_mut();
-    for evt in gamepad_event.iter() {
-        if let &GamepadEvent {
-            gamepad: GAMEPAD,
-            event_type: ButtonChanged(button, value),
-        } = evt
-        {
-            if value > 0.5 {
-                match button {
-                    DPadUp => {
-                        *direction = Direction::North;
-                    }
-                    DPadDown => {
-                        *direction = Direction::South;
-                    }
-                    DPadLeft => {
-                        *direction = Direction::West;
-                    }
-                    DPadRight => {
-                        *direction = Direction::East;
-                    }
-                    Start => {
-                        exit_event.send(AppExit);
-                    }
-                    _ => continue,
+    for &GamepadButtonChangedEvent {
+        button_type,
+        value,
+        gamepad,
+    } in gamepad_event.iter()
+    {
+        assert_eq!(gamepad, GAMEPAD);
+
+        if value > 0.5 {
+            match button_type {
+                DPadUp => {
+                    *direction = Direction::North;
                 }
-                log::info!("Player direction updated to {direction:?}");
+                DPadDown => {
+                    *direction = Direction::South;
+                }
+                DPadLeft => {
+                    *direction = Direction::West;
+                }
+                DPadRight => {
+                    *direction = Direction::East;
+                }
+                Start => {
+                    exit_event.send(AppExit);
+                }
+                _ => continue,
             }
+            log::info!("Player direction updated to {direction:?}");
         }
     }
 }

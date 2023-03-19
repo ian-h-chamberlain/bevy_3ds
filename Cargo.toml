@@ -2,34 +2,39 @@
 name = "bevy_3ds"
 version = "0.1.0"
 edition = "2021"
-authors = [""]
+authors = []
 description = "A library for using Bevy on the 3DS"
 
 [dependencies]
-ctru-rs = { git = "https://github.com/Meziu/ctru-rs.git" }
+ctru-rs = { git = "https://github.com/rust3ds/ctru-rs.git" }
 
-# This library targets Bevy main for now, since it requires a fork of bevy_ecs
 [dependencies.bevy]
-git = "https://github.com/bevyengine/bevy.git"
-branch = "main"
+version = "0.10.0"
 default-features = false
-# Defaults, except for "bevy_gilrs", "bevy_winit", "x11", and "filesystem_watcher",
-# none of which make sense on this platform.
 features = [
     "animation",
+    "bevy_asset",
     "bevy_audio",
+    "bevy_gilrs",
+    "bevy_scene",
+    # "bevy_winit",
+    "bevy_core_pipeline",
+    "bevy_pbr",
     "bevy_gltf",
-    "render",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
     "png",
     "hdr",
+    "ktx2",
+    "zstd",
     "vorbis",
+    # "x11",
+    # "filesystem_watcher",
+    # "android_shared_stdcxx",
+    # "tonemapping_luts",
 ]
-
-# For now, require a fork of bevy_ecs: https://github.com/bevyengine/bevy/pull/4452
-# This also requires bevy_reflect and a few other crates to work properly
-[patch."https://github.com/bevyengine/bevy.git"]
-bevy_ecs = { git = "https://github.com/ian-h-chamberlain/bevy.git", branch = "entity-32bit-cursor" }
-bevy_reflect = { git = "https://github.com/ian-h-chamberlain/bevy.git", branch = "entity-32bit-cursor" }
 
 # Improve performance of the Bevy runtime
 [profile.dev.package.bevy]

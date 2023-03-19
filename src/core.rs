@@ -4,34 +4,24 @@
 
 use bevy::app::AppExit;
 use bevy::prelude::*;
-use ctru::services::Apt;
-use ctru::Gfx;
-
-// TODO: are these stages needed? Might reconsider stages especially with stageless PR incoming
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, StageLabel)]
-enum Stage {
-    Apt,
-    Gfx,
-}
+use ctru::prelude::*;
 
 #[derive(Default)]
 pub struct CorePlugin;
 
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
-        let apt_handle = Apt::init().expect("failed to init APT");
-        let gfx_handle = Gfx::init().expect("unable to init GFX");
+        let gfx = Gfx::init().expect("unable to init GFX");
+        let apt = Apt::init().expect("failed to init APT");
 
-        app.insert_non_send_resource(gfx_handle)
-            .insert_resource(apt_handle)
+        app.insert_non_send_resource(gfx)
+            .insert_non_send_resource(apt)
             // Check APT and exit system before everything else
-            .add_stage_before(
-                CoreStage::PreUpdate,
-                Stage::Apt,
-                SystemStage::single(exit_system),
-            )
+            // TODO: reread https://bevyengine.org/news/bevy-0-10/#ecs-schedule-v3
+            // and make sure these are scheduled correctly
+            .add_system(exit_system.before(CoreSet::PreUpdate))
             // run gfx flush after all other stages
-            .add_stage_after(CoreStage::Last, Stage::Gfx, SystemStage::single(flush_gfx));
+            .add_system(flush_gfx.after(CoreSet::PostUpdate));
     }
 }
 

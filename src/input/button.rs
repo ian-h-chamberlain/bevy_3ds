@@ -1,5 +1,5 @@
 use bevy::ecs::event::EventWriter;
-use bevy::input::gamepad::{GamepadButtonType, GamepadEventRaw, GamepadEventType};
+use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadButtonType, GamepadEvent};
 use ctru::services::hid::{Hid, KeyPad};
 
 use super::GAMEPAD;
@@ -9,31 +9,23 @@ const PRESSED: f32 = 1.0;
 const UNPRESSED: f32 = 0.0;
 
 ///
-pub fn update_state(hid: &Hid, events: &mut EventWriter<GamepadEventRaw>) {
+pub fn update_state(hid: &Hid, events: &mut EventWriter<GamepadEvent>) {
     for_each_key(hid.keys_down(), |key_pad| {
         if let Some(button) = convert_key(key_pad) {
-            events.send(GamepadEventRaw::new(
-                GAMEPAD,
-                GamepadEventType::ButtonChanged(button, PRESSED),
-            ));
+            events.send(GamepadButtonChangedEvent::new(GAMEPAD, button, PRESSED).into());
         }
     });
 
+    // TODO: should we even bother sending events for keys_held() ?
     for_each_key(hid.keys_held(), |key_pad| {
         if let Some(button) = convert_key(key_pad) {
-            events.send(GamepadEventRaw::new(
-                GAMEPAD,
-                GamepadEventType::ButtonChanged(button, PRESSED),
-            ));
+            events.send(GamepadButtonChangedEvent::new(GAMEPAD, button, PRESSED).into());
         }
     });
 
     for_each_key(hid.keys_up(), |key_pad| {
         if let Some(button) = convert_key(key_pad) {
-            events.send(GamepadEventRaw::new(
-                GAMEPAD,
-                GamepadEventType::ButtonChanged(button, UNPRESSED),
-            ));
+            events.send(GamepadButtonChangedEvent::new(GAMEPAD, button, UNPRESSED).into());
         }
     });
 }

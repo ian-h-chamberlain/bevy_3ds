@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = []
 description = "A library for using Bevy on the 3DS"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 ctru-rs = { git = "https://github.com/rust3ds/ctru-rs.git" }
